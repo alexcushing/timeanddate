@@ -18,7 +18,7 @@ class Intro extends Component {
   handleChange = (event, index, value) => {
     let fahreneheit = true;
     localStorage.setItem("f", true);
-    if (value == 2) {
+    if (value === 2) {
       fahreneheit = false;
       localStorage.setItem("f", false);
     }
@@ -27,7 +27,7 @@ class Intro extends Component {
   handleHoursFormat = (event, index, value) => {
     localStorage.setItem("12", true);
     let standardTime = true;
-    if (value == 2) {
+    if (value === 2) {
       standardTime = false;
       localStorage.setItem("12", false);
     }

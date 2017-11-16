@@ -1,10 +1,8 @@
 import React, { Component } from "react";
 import axios from "axios";
 import fahrenheitToCelsius from "fahrenheit-to-celsius";
-import { Card } from "material-ui/Card";
 import CircularProgress from "material-ui/CircularProgress";
 import "./Styles/Home.css";
-import RaisedButton from "material-ui/RaisedButton";
 import { Redirect } from "react-router-dom";
 import IconMenu from "material-ui/IconMenu";
 import MenuItem from "material-ui/MenuItem";
@@ -30,7 +28,7 @@ class Home extends Component {
     redirect: false,
     standardTime: true
   };
-  componentDidMount = () => {
+  componentWillMount = () => {
     if (
       localStorage.getItem("f") === null ||
       localStorage.getItem("12") === null
@@ -44,9 +42,10 @@ class Home extends Component {
     }
 
     let localData = localStorage["weatherdata"];
-    if (localData == null) {
+    if (localData === null || localData === undefined) {
       this.setState({ loading: true, cached: false });
     } else {
+      console.log('getting stuff')
       localData = JSON.parse(localData);
       this.setState({
         cached: true,
@@ -71,6 +70,7 @@ class Home extends Component {
             .state.latitude},${this.state.longitude}`
         )
         .then(({ data }) => {
+          console.log(data)
           localStorage.setItem("weatherdata", JSON.stringify(data));
           this.setState({
             cached: false,
@@ -82,7 +82,12 @@ class Home extends Component {
             icon: data.current.condition.icon,
             timezone: data.location.tz_id
           });
+        })
+        .catch(err=> {
+          console.error(err);
         });
+    }, err => {
+      console.error(err);
     });
   };
   sendToSettings = () => {
@@ -131,22 +136,31 @@ class Home extends Component {
           </div>
         ) : (
           <div className="Weather">
-            {this.state.town}, {this.state.state}:{" "}
-            {this.state.fahrenheit
-              ? this.state.temp
-              : Math.round(fahrenheitToCelsius(this.state.temp) * 100) /
-                100}° {this.state.fahrenheit ? "F" : "C"}
+            <div className="Weather-over">
+              <span>{this.state.town}, {this.state.state}</span>
+              <span>{this.state.fahrenheit
+                ? this.state.temp
+                : Math.round(fahrenheitToCelsius(this.state.temp) * 100) /
+                  100}° {this.state.fahrenheit ? "F" : "C"}</span>
+              </div>
             <span className="Weather-under">
               {this.state.description}
-              <img src={this.state.icon} className="Weather--icon"/>
+              <img src={this.state.icon} alt='weather' className="Weather--icon"/>
             </span>
           </div>
         )}
         <div className="Clock">
+          <span className="Clock-top"><Clock
+              format="ddd, MM/DD/YYYY"
+              ticking={true}
+              timezone={this.state.timezone}
+              interval= {60000}
+            />{" "}</span>
           <Clock
-            format={this.state.standardTime ? "hh:mm:ss" : "HH:mm:ss"}
+            format={this.state.standardTime ? "h:mm a" : "HH:mm"}
             ticking={true}
             timezone={this.state.timezone}
+            interval={5000}
           />
         </div>
       </div>
