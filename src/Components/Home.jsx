@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import axios from "axios";
-import kelvinToCelsius from "kelvin-to-celsius";
-import kelvinToFahrenheit from "kelvin-to-fahrenheit";
+import fahrenheitToCelsius from "fahrenheit-to-celsius";
 import { Card } from "material-ui/Card";
 import CircularProgress from "material-ui/CircularProgress";
 import "./Styles/Home.css";
@@ -22,6 +21,8 @@ class Home extends Component {
     description: "",
     icon: "",
     town: "",
+    state: "",
+    feels: "",
     temp: 0,
     max: 0,
     min: 0,
@@ -49,11 +50,13 @@ class Home extends Component {
       localData = JSON.parse(localData);
       this.setState({
         cached: true,
-        town: localData.name,
-        temp: localData.main.temp,
-        max: localData.main.temp_max,
-        min: localData.main.temp_min,
-        description: localData.weather[0].description
+        town: localData.location.name,
+        state: localData.location.region,
+        temp: localData.current.temp_f,
+        feels: localData.current.feelslike_f,
+        description: localData.current.condition.text,
+        icon: localData.current.condition.icon,
+        timezone: localData.location.tz_id
       });
     }
     navigator.geolocation.getCurrentPosition(position => {
@@ -64,31 +67,21 @@ class Home extends Component {
       });
       axios
         .get(
-          `http://api.openweathermap.org/data/2.5/weather?lat=${this.state
-            .latitude}&lon=${this.state
-            .longitude}&appid=b0eac06c9a33cde35412c3c1af49fdd9`
+          `http://api.apixu.com/v1/current.json?key=129414658c224dda95b44931171611&q=${this
+            .state.latitude},${this.state.longitude}`
         )
         .then(({ data }) => {
           localStorage.setItem("weatherdata", JSON.stringify(data));
           this.setState({
             cached: false,
-            town: data.name,
-            temp: data.main.temp,
-            max: data.main.temp_max,
-            min: data.main.temp_min,
-            description: data.weather[0].description,
-            icon: data.weather[0].icon
+            town: data.location.name,
+            state: data.location.region,
+            temp: data.current.temp_f,
+            feels: data.current.feelslike_f,
+            description: data.current.condition.text,
+            icon: data.current.condition.icon,
+            timezone: data.location.tz_id
           });
-        });
-
-      axios
-        .get(
-          `https://maps.googleapis.com/maps/api/timezone/json?location=${this
-            .state.latitude},${this.state
-            .longitude}&timestamp=1458000000&key=AIzaSyBXHdqV3nbssNYnXwMEweUqlrF31ItNrEY`
-        )
-        .then(response => {
-          this.setState({ timezone: response.timeZoneId });
         });
     });
   };
@@ -108,7 +101,7 @@ class Home extends Component {
       return <Redirect push to="/intro" />;
     }
     return (
-      <div className='Home'>
+      <div className="Home">
         <IconMenu
           iconButtonElement={
             <IconButton>
@@ -138,31 +131,18 @@ class Home extends Component {
           </div>
         ) : (
           <div className="Weather">
-            {this.state.town}:{" "}
+            {this.state.town}, {this.state.state}:{" "}
             {this.state.fahrenheit
-              ? kelvinToFahrenheit(this.state.temp)
-              : kelvinToCelsius(this.state.temp)}°{" "}
-            {this.state.fahrenheit ? "F" : "C"}
+              ? this.state.temp
+              : Math.round(fahrenheitToCelsius(this.state.temp) * 100) /
+                100}° {this.state.fahrenheit ? "F" : "C"}
             <span className="Weather-under">
-              <span className="Weather-under--max">
-                Max:{" "}
-                {this.state.fahrenheit
-                  ? kelvinToFahrenheit(this.state.max)
-                  : kelvinToCelsius(this.state.max)}°{" "}
-                {this.state.fahrenheit ? "F" : "C"}
-              </span>
-              <span className="Weather-under--min">
-                Min:{" "}
-                {this.state.fahrenheit
-                  ? kelvinToFahrenheit(this.state.min)
-                  : kelvinToCelsius(this.state.min)}°{" "}
-                {this.state.fahrenheit ? "F" : "C"}
-              </span>
               {this.state.description}
+              <img src={this.state.icon} className="Weather--icon"/>
             </span>
           </div>
         )}
-        <div className='Clock'>
+        <div className="Clock">
           <Clock
             format={this.state.standardTime ? "hh:mm:ss" : "HH:mm:ss"}
             ticking={true}

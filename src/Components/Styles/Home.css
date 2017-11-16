@@ -11,7 +11,13 @@ body, html {
 
 .Weather-under {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+}
+
+.Weather--icon {
+    object-fit: contain;
+    width: 60px;
+    height: 60px;
 }
 
 .Intro {
