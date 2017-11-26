@@ -70,7 +70,7 @@ class Home extends Component {
           loading: false,
         });
 
-          axios.get(`https://api.apixu.com/v1/forecast.json?key=62ec1e42207d477b9f9214332171611&q=${this
+          axios.get(`//api.apixu.com/v1/forecast.json?key=62ec1e42207d477b9f9214332171611&q=${this
           .state.latitude},${this.state.longitude}`)
           .then(({ data }) => {
             localStorage.setItem("weatherdata", JSON.stringify(data));
