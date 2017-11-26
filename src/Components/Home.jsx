@@ -70,7 +70,7 @@ class Home extends Component {
           loading: false,
         });
 
-          axios.get(`http://api.apixu.com/v1/forecast.json?key=62ec1e42207d477b9f9214332171611&q=${this
+          axios.get(`https://api.apixu.com/v1/forecast.json?key=62ec1e42207d477b9f9214332171611&q=${this
           .state.latitude},${this.state.longitude}`)
           .then(({ data }) => {
             localStorage.setItem("weatherdata", JSON.stringify(data));
@@ -93,7 +93,7 @@ class Home extends Component {
           });
       },
       err => {
-        console.error(err);
+        console.error('error->',err);
       }
     );
     axios.get(`https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=${'1853cbc2ccf8484f9c79f84ecb46adc3'}`)
