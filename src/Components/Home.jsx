@@ -24,9 +24,13 @@ class Home extends Component {
     temp: 0,
     max: 0,
     min: 0,
+    forecast: [],
     fahrenheit: true,
     redirect: false,
-    standardTime: true
+    standardTime: true,
+    articles: [],
+    currentArticle: 0,
+    articlesLoading: true
   };
   componentWillMount = () => {
     if (
@@ -43,9 +47,8 @@ class Home extends Component {
 
     let localData = localStorage["weatherdata"];
     if (localData === null || localData === undefined) {
-      this.setState({ loading: true, cached: false });
+      this.setState({ loading: true, cached: false, articlesLoading: true });
     } else {
-      console.log('getting stuff')
       localData = JSON.parse(localData);
       this.setState({
         cached: true,
@@ -55,40 +58,50 @@ class Home extends Component {
         feels: localData.current.feelslike_f,
         description: localData.current.condition.text,
         icon: localData.current.condition.icon,
-        timezone: localData.location.tz_id
+        timezone: localData.location.tz_id,
+        articlesLoading: true
       });
     }
-    navigator.geolocation.getCurrentPosition(position => {
-      this.setState({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        loading: false
-      });
-      axios
-        .get(
-          `http://api.apixu.com/v1/current.json?key=129414658c224dda95b44931171611&q=${this
-            .state.latitude},${this.state.longitude}`
-        )
-        .then(({ data }) => {
-          console.log(data)
-          localStorage.setItem("weatherdata", JSON.stringify(data));
-          this.setState({
-            cached: false,
-            town: data.location.name,
-            state: data.location.region,
-            temp: data.current.temp_f,
-            feels: data.current.feelslike_f,
-            description: data.current.condition.text,
-            icon: data.current.condition.icon,
-            timezone: data.location.tz_id
-          });
-        })
-        .catch(err=> {
-          console.error(err);
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        this.setState({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          loading: false,
         });
-    }, err => {
-      console.error(err);
-    });
+
+          axios.get(`http://api.apixu.com/v1/forecast.json?key=62ec1e42207d477b9f9214332171611&q=${this
+          .state.latitude},${this.state.longitude}`)
+          .then(({ data }) => {
+            localStorage.setItem("weatherdata", JSON.stringify(data));
+            // data.forecast.forcastday.map(x => {
+            //   console.log
+            // })
+            this.setState({
+              cached: false,
+              town: data.location.name,
+              state: data.location.region,
+              temp: data.current.temp_f,
+              feels: data.current.feelslike_f,
+              description: data.current.condition.text,
+              icon: data.current.condition.icon,
+              timezone: data.location.tz_id,
+            });
+          })
+          .catch(err => {
+            console.error(err);
+          });
+      },
+      err => {
+        console.error(err);
+      }
+    );
+    axios.get(`https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=${'1853cbc2ccf8484f9c79f84ecb46adc3'}`)
+    .then ( response => {
+      let articles = response.data.articles;
+      this.setState({ articles, articlesLoading: false })
+      this.passThroughArticles();
+    })
   };
   sendToSettings = () => {
     this.setState({ redirect: true });
@@ -101,6 +114,14 @@ class Home extends Component {
     localStorage.setItem("12", `${!this.state.standardTime}`);
     this.setState({ standardTime: !this.state.standardTime });
   };
+  passThroughArticles = () => {
+    let length = this.state.articles.length - 1 // account for srray starting at 0
+    let currentArticle = this.state.currentArticle
+    setInterval(()=> {
+      currentArticle !== length ? currentArticle = currentArticle + 1 : currentArticle = 0
+      this.setState({ currentArticle })
+    }, 15000);
+  }
   render() {
     if (this.state.redirect) {
       return <Redirect push to="/intro" />;
@@ -137,25 +158,35 @@ class Home extends Component {
         ) : (
           <div className="Weather">
             <div className="Weather-over">
-              <span>{this.state.town}, {this.state.state}</span>
-              <span>{this.state.fahrenheit
-                ? this.state.temp
-                : Math.round(fahrenheitToCelsius(this.state.temp) * 100) /
-                  100}° {this.state.fahrenheit ? "F" : "C"}</span>
-              </div>
+              <span>
+                {this.state.town}, {this.state.state}
+              </span>
+              <span>
+                {this.state.fahrenheit
+                  ? this.state.temp
+                  : Math.round(fahrenheitToCelsius(this.state.temp) * 100) /
+                    100}° {this.state.fahrenheit ? "F" : "C"}
+              </span>
+            </div>
             <span className="Weather-under">
               {this.state.description}
-              <img src={this.state.icon} alt='weather' className="Weather--icon"/>
+              <img
+                src={this.state.icon}
+                alt="weather"
+                className="Weather--icon"
+              />
             </span>
           </div>
         )}
         <div className="Clock">
-          <span className="Clock-top"><Clock
+          <span className="Clock-top">
+            <Clock
               format="ddd, MM/DD/YYYY"
               ticking={true}
               timezone={this.state.timezone}
-              interval= {60000}
-            />{" "}</span>
+              interval={60000}
+            />{" "}
+          </span>
           <Clock
             format={this.state.standardTime ? "h:mm a" : "HH:mm"}
             ticking={true}
@@ -163,6 +194,19 @@ class Home extends Component {
             interval={5000}
           />
         </div>
+        {(!this.state.articlesLoading && this.state.articles[this.state.currentArticle]) && <div className='articles'>
+          <div  className='articles-title'>
+            {
+              this.state.articles[this.state.currentArticle].title
+            }
+          </div>
+          <hr />
+          <div className='articles-desc'>
+            {
+              this.state.articles[this.state.currentArticle].description
+            }
+          </div>
+        </div>}
       </div>
     );
   }

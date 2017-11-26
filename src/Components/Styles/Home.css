@@ -1,6 +1,8 @@
 body, html {
     font-family: Arial;
     box-sizing: border-box;
+    background: black;
+    color: white;
 }
 
 .Weather {
@@ -64,4 +66,20 @@ body, html {
 .Clock-top {
     font-size: 35px;
     font-weight: normal;
+}
+
+.articles {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    width: 500px;
+}
+
+.articles-title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+svg {
+    color: white !important;
 }
